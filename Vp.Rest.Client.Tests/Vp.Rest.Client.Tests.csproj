@@ -5,4 +5,7 @@
   <ItemGroup>
     <PackageReference Include="Castle.Core" Version="4.3.1" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Vp.Rest.Client\Vp.Rest.Client.csproj" />
+  </ItemGroup>
 </Project>

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
@@ -20,11 +21,12 @@ namespace Vp.Rest.Client
         public void Intercept(IInvocation invocation)
         {
             var method = invocation.GetConcreteMethod();
-            if (method.ReturnType == typeof(string))
-            {
-                invocation.ReturnValue = method.Name;
-                return;
-            }
+            
+        }
+
+        private Task Execute(HttpClient client, HttpMethod method, string relativeUrl, object body)
+        {
+            throw new NotImplementedException();
         }
 
         private HttpClient CreateHttpClient(IInvocation invocation, HttpMessageHandler handler)
