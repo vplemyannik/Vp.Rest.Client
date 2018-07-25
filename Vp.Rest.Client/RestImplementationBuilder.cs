@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using Castle.DynamicProxy;
+using Microsoft.Extensions.Options;
 
 namespace Vp.Rest.Client
 {
     public class RestImplementationBuilder
     {
-        private readonly IList<Action<RestImplementation>> _actions = new List<Action<RestImplementation>>();
+        private readonly IList<Action<RestMethodOptions>> _actions = new List<Action<RestMethodOptions>>();
 
         public RestImplementationBuilder AddHandler(DelegatingHandler handler)
         {
@@ -25,16 +27,16 @@ namespace Vp.Rest.Client
             _actions.Add(r => r.TimeOut = timeOut);
             return this;
         }
-
+        
         public RestImplementation Build()
         {
-            var implementation = new RestImplementation();
+            var options = new RestMethodOptions();
             foreach (var action in _actions)
             {
-                action(implementation);
+                action(options);
             }
 
-            return implementation;
+            return new RestImplementation(() => new RestMethodInterceptor(Options.Create(options)));
         }
     }
 }

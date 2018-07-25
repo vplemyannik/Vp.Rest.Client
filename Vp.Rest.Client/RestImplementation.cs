@@ -9,14 +9,16 @@ namespace Vp.Rest.Client
     public class RestImplementation
     {
         private static readonly ProxyGenerator _generator = new ProxyGenerator();
-        
-        public IList<DelegatingHandler> Handlers { get; }
-        public string Url { get; internal set; }
-        public TimeSpan  TimeOut { get; internal set; }
+        private readonly Func<IInterceptor> _interceptorCreator;
+
+        internal RestImplementation(Func<IInterceptor> interceptorCreator)
+        {
+            _interceptorCreator = interceptorCreator;
+        }
 
         public T Create<T>()
         {
-            var restMethodInspector = new RestMethodInterceptor();
+            var restMethodInspector = _interceptorCreator();
             var proxy = (T) _generator.CreateInterfaceProxyWithoutTarget(typeof(T), restMethodInspector);
             return proxy;
         }
