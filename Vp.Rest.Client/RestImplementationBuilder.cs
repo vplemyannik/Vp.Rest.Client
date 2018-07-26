@@ -28,6 +28,12 @@ namespace Vp.Rest.Client
             return this;
         }
         
+        public RestImplementationBuilder AddAuthentification(TimeSpan timeOut)
+        {
+            _actions.Add(r => r.TimeOut = timeOut);
+            return this;
+        }
+        
         public RestImplementation Build()
         {
             var options = new RestMethodOptions();

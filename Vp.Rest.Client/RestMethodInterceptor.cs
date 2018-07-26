@@ -2,16 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Reflection;
+using System.Text;
 using System.Threading.Tasks;
+using Castle.Core.Internal;
 using Castle.DynamicProxy;
-using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
+using Vp.Rest.Client.Models;
 
 namespace Vp.Rest.Client
 {
     public class RestMethodInterceptor : IRestMethodInterceptor
     {
         private readonly IOptions<RestMethodOptions> _options;
+
+        private readonly IDictionary<RestMethod, HttpMethod> _httpMethodMap = new Dictionary<RestMethod, HttpMethod>
+        {
+            {RestMethod.GET, HttpMethod.Get},
+            {RestMethod.POST, HttpMethod.Post},
+            {RestMethod.PUT, HttpMethod.Put},
+            {RestMethod.DELETE, HttpMethod.Delete},
+            {RestMethod.HEAD, HttpMethod.Head},
+            {RestMethod.OPTION, HttpMethod.Options},
+        };
 
         public RestMethodInterceptor(IOptions<RestMethodOptions> options)
         {
@@ -21,24 +35,67 @@ namespace Vp.Rest.Client
         public void Intercept(IInvocation invocation)
         {
             var method = invocation.GetConcreteMethod();
+            var client = CreateHttpClient(invocation);
+
+            var restAttribute = method.GetAttribute<RestAttribute>();
             
+            var httpMethod = _httpMethodMap[restAttribute.Method];
+
+            var parametersInfo = method.GetParameters();
+            var parameters = parametersInfo
+                .Zip(invocation.Arguments, 
+                    (paramInfo, value) 
+                        => new Parameter(paramInfo, value));
+
+
+            var relativeUrl = UriBuilder.Buld(restAttribute.TemplatePath, parameters);
+
+            var content = CreateHttpContent(parameters);
+
+            Execute(client, httpMethod, relativeUrl, content, null);
+
         }
 
-        private Task Execute(HttpClient client, HttpMethod method, string relativeUrl, object body)
+        private Task<HttpResponseMessage> Execute(
+            HttpClient client, 
+            HttpMethod method, 
+            string relativeUrl, 
+            HttpContent content,
+            IEnumerable<KeyValuePair<string, string>> headers)
         {
-            throw new NotImplementedException();
+            var request = new HttpRequestMessage(method, _options.Value.Url + relativeUrl);
+
+            foreach (var header in headers ?? Enumerable.Empty<KeyValuePair<string, string>>())
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
+
+            if (method != HttpMethod.Get)
+            {
+                request.Content = content;
+            }
+
+            return client.SendAsync(request);
         }
 
-        private HttpClient CreateHttpClient(IInvocation invocation, HttpMessageHandler handler)
+        private HttpClient CreateHttpClient(IInvocation invocation)
         {
             return new HttpClient(CreateHttpMessageHandler(invocation));
         }
         
         private HttpMessageHandler CreateHttpMessageHandler(IInvocation invocation)
         {
-            
             var primatyHandler = new HttpClientHandler();
             return CreateHandlerPipeline(primatyHandler, _options.Value.Handlers);
+        }
+
+        private HttpContent CreateHttpContent(IEnumerable<Parameter> parameters)
+        {
+            var body = parameters
+                .FirstOrDefault(p => p.ParameterInfo.GetCustomAttribute<Body>() != null);
+            
+            var content  = new StringContent(JsonConvert.SerializeObject(body.Value), Encoding.UTF8);
+            return content;
         }
         
         private static HttpMessageHandler CreateHandlerPipeline(HttpMessageHandler primaryHandler, IEnumerable<DelegatingHandler> additionalHandlers)

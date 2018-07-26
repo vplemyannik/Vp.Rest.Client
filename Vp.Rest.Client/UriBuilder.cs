@@ -3,12 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Vp.Rest.Client.Models;
 
 namespace Vp.Rest.Client
 {
     public static class UriBuilder
     {
-        public static string Buld(string url, IDictionary<string, object> parameterValueMap)
+        private const char BR_RIGHT = '}';
+        private const char BR_LEFT = '{';
+        
+        public static string Buld(string url, IEnumerable<Parameter> parameters)
         {
             var templateBuilder = new StringBuilder(32);
             var urlTemplate = new StringBuilder(url);
@@ -18,10 +22,10 @@ namespace Vp.Rest.Client
             {
                 switch (character)
                 {
-                    case '{':
+                    case BR_LEFT:
                         flag = State.Start;
                         break;
-                    case '}':
+                    case BR_RIGHT:
                         flag = State.End;
                         goto default;
                     default:
@@ -32,15 +36,15 @@ namespace Vp.Rest.Client
 
                         if (flag == State.End)
                         {
-                            var param = parameterValueMap
+                            var param = parameters
                                     .FirstOrDefault(
                                         p => string.Equals(
-                                            p.Key,
+                                            p.Name,
                                             templateBuilder.ToString(), 
                                             StringComparison.OrdinalIgnoreCase)
                                     );
 
-                            var key = $"{{{param.Key}}}";
+                            var key = $"{{{param.Name}}}";
                             urlTemplate.Replace(key, param.Value.ToString());
                             templateBuilder.Clear();
                             flag = State.NoAction;

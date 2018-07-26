@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Vp.Rest.Client.Models;
 
 namespace Vp.Rest.Client.MsTests
 {
@@ -14,10 +15,10 @@ namespace Vp.Rest.Client.MsTests
             var testUrl = "api/orders/{orderId}/products/?orderby={orderQuery}";
             var exceptedUrl = "api/orders/12345/products/?orderby=price";
 
-            var dictionary = new Dictionary<string, object>
+            var dictionary = new List<Parameter>
             {
-                {"orderId", 12345},
-                {"orderQuery", "price"}
+                new Parameter("orderId", 12345),
+                new Parameter("orderQuery", "price"),
             };
             
             var result = UriBuilder.Buld(testUrl, dictionary);
