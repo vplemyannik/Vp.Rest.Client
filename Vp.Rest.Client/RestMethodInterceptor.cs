@@ -82,42 +82,41 @@ namespace Vp.Rest.Client
         {
             var restMethodInfo = invocation.GetConcreteMethod();
             Task<HttpResponseMessage> task = null;
-            var completion = new TaskCompletionSource<>();
             if (restMethodInfo.ReturnType == typeof(Task))
             {
                 task = client.SendAsync(requestMessage);
-                task.ContinueWith(currentTask =>
-                {
-                    if (currentTask.IsFaulted)
-                    {
-                    
-                    }
-
-                    if (currentTask.Status == TaskStatus.RanToCompletion)
-                    {
-                    
-                    }
-                });
+                invocation.ReturnValue = task;
             }
 
-            if (typeof(Task).IsAssignableFrom(restMethodInfo.ReturnType))
+            else if(typeof(Task).IsAssignableFrom(restMethodInfo.ReturnType))
             {
                 task = client.SendAsync(requestMessage);
+                var completion = ReflectionHelper.CreateCompletionTaskSourceForType(restMethodInfo.ReturnType);
                 task.ContinueWith(currentTask =>
                 {
                     if (currentTask.IsFaulted)
                     {
-                    
+                        completion.SetException(currentTask.Exception);
                     }
 
                     if (currentTask.Status == TaskStatus.RanToCompletion)
                     {
-                        currentTask.Re
+                        var responseTask = currentTask.Result.Content.ReadAsStringAsync();
+                        responseTask.ContinueWith(readTask =>
+                        {
+                            if (readTask.IsFaulted)
+                            {
+                                completion.SetException(readTask.Exception);
+                            }
+
+                            completion.SetResult(JsonConvert.DeserializeObject(readTask.Result, restMethodInfo.ReturnType));
+                        });
                     }
                 });
+                
+                invocation.ReturnValue = completion.Task;
             }
-            
-            invocation.ReturnValue = task;
+           
         }
 
         private HttpClient CreateHttpClient(IInvocation invocation)

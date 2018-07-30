@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 
 namespace Vp.Rest.Client
 {
-    public class ReflectionHelper
+    public static class ReflectionHelper
     {
         private static MethodInfo _method => typeof(ReflectionHelper).GetMethod(nameof(CreateCompletionTaskSource));
 
-        public ITaskCompletionSource CreateCompletionTaskSourceForType(Type type)
+        public static ITaskCompletionSource CreateCompletionTaskSourceForType(Type type)
         {
             var method = _method.MakeGenericMethod(type);
             return (ITaskCompletionSource) method.Invoke(null, null);

@@ -23,10 +23,10 @@ namespace Vp.Rest.Client.MsTests
             }
         }
 
-        [RestContract("localhost:8080/")]
+        [RestContract("http://localhost:8080/")]
         public interface ITestInterface
         {
-            [Rest(RestMethod.GET, "api/orders/")]
+            [Rest(RestMethod.POST, "api/orders/")]
             Task GreateOrder([Body] Order order);
         }
         
@@ -34,7 +34,7 @@ namespace Vp.Rest.Client.MsTests
         public async Task Send()
         {
             var restFactory = new RestImplementationBuilder()
-                .AddUrl("localhost:8080/")
+                .AddUrl("http://localhost:8080/")
                 .Build();
 
             var imp = restFactory.Create<ITestInterface>();
