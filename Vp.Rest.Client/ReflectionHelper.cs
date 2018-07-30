@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -6,7 +7,7 @@ namespace Vp.Rest.Client
 {
     public static class ReflectionHelper
     {
-        private static MethodInfo _method => typeof(ReflectionHelper).GetMethod(nameof(CreateCompletionTaskSource));
+        private static MethodInfo _method => GetMethod();
 
         public static ITaskCompletionSource CreateCompletionTaskSourceForType(Type type)
         {
@@ -14,9 +15,16 @@ namespace Vp.Rest.Client
             return (ITaskCompletionSource) method.Invoke(null, null);
         }
 
-        private static ITaskCompletionSource CreateCompletionTaskSource<T>()
+        public static ITaskCompletionSource CreateCompletionTaskSource<T>()
         {
             return new TaskComplitionWrapper<T>();
+        }
+
+        private static MethodInfo GetMethod()
+        {
+          return  typeof(ReflectionHelper)
+                .GetMethods()
+                .FirstOrDefault(m => m.Name == nameof(CreateCompletionTaskSource) && m.IsGenericMethod);
         }
     }
 

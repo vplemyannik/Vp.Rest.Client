@@ -91,7 +91,8 @@ namespace Vp.Rest.Client
             else if(typeof(Task).IsAssignableFrom(restMethodInfo.ReturnType))
             {
                 task = client.SendAsync(requestMessage);
-                var completion = ReflectionHelper.CreateCompletionTaskSourceForType(restMethodInfo.ReturnType);
+                var unwrapType = restMethodInfo.ReturnType.GetGenericArguments()[0];
+                var completion = ReflectionHelper.CreateCompletionTaskSourceForType(unwrapType);
                 task.ContinueWith(currentTask =>
                 {
                     if (currentTask.IsFaulted)
@@ -109,7 +110,7 @@ namespace Vp.Rest.Client
                                 completion.SetException(readTask.Exception);
                             }
 
-                            completion.SetResult(JsonConvert.DeserializeObject(readTask.Result, restMethodInfo.ReturnType));
+                            completion.SetResult(JsonConvert.DeserializeObject(readTask.Result, unwrapType));
                         });
                     }
                 });
@@ -137,6 +138,8 @@ namespace Vp.Rest.Client
             var body = parameters
                 .FirstOrDefault(p => p.ParameterInfo.GetCustomAttribute<Body>() != null);
             
+            if(body == null)
+                return new MultipartFormDataContent();
             var content  = new StringContent(JsonConvert.SerializeObject(body.Value), Encoding.UTF8);
             return content;
         }

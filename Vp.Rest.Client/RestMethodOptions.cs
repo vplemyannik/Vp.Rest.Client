@@ -6,7 +6,7 @@ namespace Vp.Rest.Client
 {
     public class RestMethodOptions
     {
-        public IList<DelegatingHandler> Handlers { get; }
+        public IList<DelegatingHandler> Handlers { get; } = new List<DelegatingHandler>();
         public string Url { get; internal set; }
         public TimeSpan  TimeOut { get; internal set; }
     }
