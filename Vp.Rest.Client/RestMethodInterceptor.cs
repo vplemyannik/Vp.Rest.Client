@@ -52,19 +52,19 @@ namespace Vp.Rest.Client
 
             var content = CreateHttpContent(parameters);
 
-            Execute(client, httpMethod, relativeUrl, content, null);
+            var request = CreateHttpRequest(httpMethod, relativeUrl, content, null);
+            Execute(invocation, client, request);
 
         }
 
-        private Task<HttpResponseMessage> Execute(
-            HttpClient client, 
+        private HttpRequestMessage CreateHttpRequest( 
             HttpMethod method, 
             string relativeUrl, 
             HttpContent content,
             IEnumerable<KeyValuePair<string, string>> headers)
         {
             var request = new HttpRequestMessage(method, _options.Value.Url + relativeUrl);
-
+            
             foreach (var header in headers ?? Enumerable.Empty<KeyValuePair<string, string>>())
             {
                 request.Headers.Add(header.Key, header.Value);
@@ -75,7 +75,49 @@ namespace Vp.Rest.Client
                 request.Content = content;
             }
 
-            return client.SendAsync(request);
+            return request;
+        }
+
+        private void Execute(IInvocation invocation, HttpClient client, HttpRequestMessage requestMessage)
+        {
+            var restMethodInfo = invocation.GetConcreteMethod();
+            Task<HttpResponseMessage> task = null;
+            var completion = new TaskCompletionSource<>();
+            if (restMethodInfo.ReturnType == typeof(Task))
+            {
+                task = client.SendAsync(requestMessage);
+                task.ContinueWith(currentTask =>
+                {
+                    if (currentTask.IsFaulted)
+                    {
+                    
+                    }
+
+                    if (currentTask.Status == TaskStatus.RanToCompletion)
+                    {
+                    
+                    }
+                });
+            }
+
+            if (typeof(Task).IsAssignableFrom(restMethodInfo.ReturnType))
+            {
+                task = client.SendAsync(requestMessage);
+                task.ContinueWith(currentTask =>
+                {
+                    if (currentTask.IsFaulted)
+                    {
+                    
+                    }
+
+                    if (currentTask.Status == TaskStatus.RanToCompletion)
+                    {
+                        currentTask.Re
+                    }
+                });
+            }
+            
+            invocation.ReturnValue = task;
         }
 
         private HttpClient CreateHttpClient(IInvocation invocation)
@@ -86,6 +128,8 @@ namespace Vp.Rest.Client
         private HttpMessageHandler CreateHttpMessageHandler(IInvocation invocation)
         {
             var primatyHandler = new HttpClientHandler();
+            if(_options.Value.Handlers == null || !_options.Value.Handlers.Any())
+                return new HttpClientHandler();
             return CreateHandlerPipeline(primatyHandler, _options.Value.Handlers);
         }
 
