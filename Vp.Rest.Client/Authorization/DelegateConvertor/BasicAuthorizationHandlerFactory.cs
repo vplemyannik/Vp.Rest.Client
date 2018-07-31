@@ -5,11 +5,11 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Vp.Rest.Client.Authentification.DelegateConvertor
+namespace Vp.Rest.Client.Authorization.DelegateConvertor
 {
-    public class BasicAuthentificationDelegatingConvertor : DefaultAuthentificationDelegatingConvertor<BasicAuthentificationOptions>
+    public class BasicAuthorizationHandlerFactory : DefaultAuthorizationHandlerFactory<BasicAuthentificationOptions>
     {
-        protected override DelegatingHandler Convert(BasicAuthentificationOptions options)
+        protected override DelegatingHandler CreateHandler(BasicAuthentificationOptions options)
         {
             return new BasicDelegatingHandler(options);
         }
@@ -32,7 +32,7 @@ namespace Vp.Rest.Client.Authentification.DelegateConvertor
                     )
                 );
             
-            request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+            request.Headers.Authorization = new AuthenticationHeaderValue(_authentificationOptions.Shema, credentials);
             return base.SendAsync(request, cancellationToken);
         }
     }

@@ -8,8 +8,8 @@ namespace Sample.Google
         static void Main(string[] args)
         {
             var restImple = new RestImplementationBuilder()
-                .AddUrl("fdsfdsds")
-                .AddTimeout(TimeSpan.FromSeconds(60))
+                .WithBaseUrl("fdsfdsds")
+                .WithTimeout(TimeSpan.FromSeconds(60))
                 .Build();
 
             var  googleApi = restImple.Create<GoogleApi>();

@@ -22,5 +22,12 @@ namespace Vp.Rest.Client
             var proxy = (T) _generator.CreateInterfaceProxyWithoutTarget(typeof(T), restMethodInspector);
             return proxy;
         }
+        
+        public object Create(Type type)
+        {
+            var restMethodInspector = _interceptorCreator();
+            var proxy = _generator.CreateInterfaceProxyWithoutTarget(type, restMethodInspector);
+            return proxy;
+        }
     }
 }

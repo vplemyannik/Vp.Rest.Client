@@ -6,8 +6,10 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Vp.Rest.Client.Configuration;
 
 namespace Vp.Rest.Client.MsTests
 {
@@ -47,8 +49,8 @@ namespace Vp.Rest.Client.MsTests
 
             var countInvokation = 0;
             var restFactory = new RestImplementationBuilder()
-                .AddUrl("http://localhost:8080/")
-                .AddHandler(new RequestHandlerStub(req =>
+                .WithBaseUrl("http://localhost:8080/")
+                .WithHandler(new RequestHandlerStub(req =>
                 {
                     countInvokation++;
                     return new HttpResponseMessage(HttpStatusCode.Created);
@@ -74,8 +76,8 @@ namespace Vp.Rest.Client.MsTests
 
             var countInvokation = 0;
             var restFactory = new RestImplementationBuilder()
-                .AddUrl("http://localhost:8080/")
-                .AddHandler(new RequestHandlerStub(req =>
+                .WithBaseUrl("http://localhost:8080/")
+                .WithHandler(new RequestHandlerStub(req =>
                 {
                     countInvokation++;
                     var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
@@ -112,14 +114,14 @@ namespace Vp.Rest.Client.MsTests
             var returnedPassword = string.Empty;
             
             var restFactory = new RestImplementationBuilder()
-                .AddUrl("http://localhost:8080/")
+                .WithBaseUrl("http://localhost:8080/")
                 .AddAuthentification(
                     builder => builder.Basic(basic =>
                     {
                         basic.Password = password;
                         basic.UserName = userName;
                     }))
-                .AddHandler(new RequestHandlerStub(req =>
+                .WithHandler(new RequestHandlerStub(req =>
                 {
                     countInvokation++;
                     string encodedCredentials = req.Headers.Authorization.Parameter;
@@ -148,6 +150,51 @@ namespace Vp.Rest.Client.MsTests
             //Assert
             Assert.AreEqual(userName, returnedUserName);
             Assert.AreEqual(password, returnedPassword);
+        }
+        
+        [TestMethod]
+        public async Task GetOrder_WithConfiguration_ShouldBeSuccess()
+        {
+            //Arrange
+            var order = new Fixture()
+                .Create<Order>();
+
+            var countInvokation = 0;
+            var provider = BuildServiceProvider(services =>
+            {
+                services.RegisterClients(restBuilder =>
+                {
+                    restBuilder.AddClient<ITestInterface>("http://localhost:8080/")
+                        .WithHandler(new RequestHandlerStub(req =>
+                        {
+                            countInvokation++;
+                            var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+                            {
+                                Content = new StringContent(JsonConvert.SerializeObject(order), Encoding.UTF8, "application/json")
+                            };
+
+                            return responseMessage;
+                        }));
+                });
+            });
+
+            var client = provider.GetRequiredService<ITestInterface>();
+            
+            //Act
+            var response = await client.GetOrder(1);
+            
+            //Assert
+            Assert.IsNotNull(response);
+            Assert.AreEqual(1, countInvokation);
+        }
+        
+        
+        private IServiceProvider BuildServiceProvider(Action<IServiceCollection> setupServices = null)
+        {
+            var services = new ServiceCollection();
+            services.AddOptions();
+            setupServices?.Invoke(services);
+            return services.BuildServiceProvider();
         }
 
         public class RequestHandlerStub : DelegatingHandler

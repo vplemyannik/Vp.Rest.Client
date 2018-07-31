@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Microsoft.Extensions.Options;
-using Vp.Rest.Client.Authentification;
-using Vp.Rest.Client.Authentification.DelegateConvertor;
+using Vp.Rest.Client.Authorization;
+using Vp.Rest.Client.Authorization.DelegateConvertor;
 
 namespace Vp.Rest.Client
 {
@@ -12,19 +12,19 @@ namespace Vp.Rest.Client
     {
         private readonly IList<Action<RestMethodOptions>> _actions = new List<Action<RestMethodOptions>>();
 
-        public RestImplementationBuilder AddHandler(DelegatingHandler handler)
+        public RestImplementationBuilder WithHandler(DelegatingHandler handler)
         {
             _actions.Add(rest => rest.Handlers.Add(handler));
             return this;
         }
         
-        public RestImplementationBuilder AddUrl(string url)
+        public RestImplementationBuilder WithBaseUrl(string url)
         {
             _actions.Add(r => r.Url = url);
             return this;
         }
         
-        public RestImplementationBuilder AddTimeout(TimeSpan timeOut)
+        public RestImplementationBuilder WithTimeout(TimeSpan timeOut)
         {
             _actions.Add(r => r.TimeOut = timeOut);
             return this;
@@ -34,15 +34,15 @@ namespace Vp.Rest.Client
         {
             var authBuilder = new AuthentificationBuilder();
             authBuilderAction(authBuilder);
-            var convertors = typeof(IAuthentificationDelegatingConvertor).Assembly
+            var convertors = typeof(IAuthorizationHandlerFactory).Assembly
                 .GetTypes()
-                .Where(t => typeof(IAuthentificationDelegatingConvertor).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+                .Where(t => typeof(IAuthorizationHandlerFactory).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
 
             var handlers = new List<DelegatingHandler>();
             foreach (var convertor in convertors)
             {
-                var con =  (IAuthentificationDelegatingConvertor) Activator.CreateInstance(convertor);
-                handlers.Add(con.Convert(authBuilder.AuthentificationOptionses));
+                var con =  (IAuthorizationHandlerFactory) Activator.CreateInstance(convertor);
+                handlers.Add(con.CreateHandler(authBuilder.AuthentificationOptionses));
             }
             _actions.Add(o => o.Handlers.AddRange(handlers));
             return this;
