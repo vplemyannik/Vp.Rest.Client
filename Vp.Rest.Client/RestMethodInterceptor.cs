@@ -9,6 +9,7 @@ using Castle.Core.Internal;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Vp.Rest.Client.Content;
 using Vp.Rest.Client.Models;
 
 namespace Vp.Rest.Client
@@ -17,7 +18,8 @@ namespace Vp.Rest.Client
     {
         private readonly IOptions<RestMethodOptions> _options;
 
-        private readonly IDictionary<RestMethod, HttpMethod> _httpMethodMap = new Dictionary<RestMethod, HttpMethod>
+        private readonly IDictionary<RestMethod, HttpMethod> _httpMethodMap 
+            = new Dictionary<RestMethod, HttpMethod>
         {
             {RestMethod.GET, HttpMethod.Get},
             {RestMethod.POST, HttpMethod.Post},
@@ -26,6 +28,13 @@ namespace Vp.Rest.Client
             {RestMethod.HEAD, HttpMethod.Head},
             {RestMethod.OPTION, HttpMethod.Options},
         };
+
+        private readonly IDictionary<string, Lazy<IContentManager>> _contentFactory =
+            new Dictionary<string, Lazy<IContentManager>>
+            {
+                { "application/json", new Lazy<IContentManager>(() => new JsonContentManager())},
+                { "application/xml", new Lazy<IContentManager>(() => new XmlContentManger()) }
+            };
 
         public RestMethodInterceptor(IOptions<RestMethodOptions> options)
         {
@@ -50,7 +59,7 @@ namespace Vp.Rest.Client
 
             var relativeUrl = UriBuilder.Buld(restAttribute.TemplatePath, parameters);
 
-            var content = CreateHttpContent(parameters);
+            var content = CreateHttpContent(parameters, restAttribute.ContetnType);
 
             var request = CreateHttpRequest(httpMethod, relativeUrl, content, null);
             Execute(invocation, client, request);
@@ -102,7 +111,9 @@ namespace Vp.Rest.Client
 
                     if (currentTask.Status == TaskStatus.RanToCompletion)
                     {
-                        var responseTask = currentTask.Result.Content.ReadAsStringAsync();
+                        var content = currentTask.Result.Content;
+                        var contentManger = _contentFactory[content.Headers.ContentType.MediaType];
+                        var responseTask = contentManger.Value.ReadContent(content, unwrapType);
                         responseTask.ContinueWith(readTask =>
                         {
                             if (readTask.IsFaulted)
@@ -110,7 +121,7 @@ namespace Vp.Rest.Client
                                 completion.SetException(readTask.Exception);
                             }
 
-                            completion.SetResult(JsonConvert.DeserializeObject(readTask.Result, unwrapType));
+                            completion.SetResult(readTask.Result);
                         });
                     }
                 });
@@ -133,17 +144,19 @@ namespace Vp.Rest.Client
             return CreateHandlerPipeline(primatyHandler, _options.Value.Handlers);
         }
 
-        private HttpContent CreateHttpContent(IEnumerable<Parameter> parameters)
+        private HttpContent CreateHttpContent(IEnumerable<Parameter> parameters, string contentType)
         {
-            var body = parameters
+            var bodyParameter = parameters
                 .FirstOrDefault(p => p.ParameterInfo.GetCustomAttribute<Body>() != null);
             
-            if(body == null)
-                return new MultipartFormDataContent();
-            var content  = new StringContent(JsonConvert.SerializeObject(body.Value), Encoding.UTF8);
-            return content;
+            if(bodyParameter == null)
+                return null;
+
+            var contentManager = _contentFactory[contentType];
+
+            return contentManager.Value.CreateContent(bodyParameter.Value);
         }
-        
+
         private static HttpMessageHandler CreateHandlerPipeline(HttpMessageHandler primaryHandler, IEnumerable<DelegatingHandler> additionalHandlers)
         {
             // This is similar to https://github.com/aspnet/AspNetWebStack/blob/master/src/System.Net.Http.Formatting/HttpClientFactory.cs#L58
