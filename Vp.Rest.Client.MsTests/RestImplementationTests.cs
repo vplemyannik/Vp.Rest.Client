@@ -96,6 +96,59 @@ namespace Vp.Rest.Client.MsTests
             Assert.IsNotNull(response);
             Assert.AreEqual(1, countInvokation);
         }
+        
+        [TestMethod]
+        public async Task GetOrder_WithAuth_ShouldBeSuccess()
+        {
+            //Arrange
+            var order = new Fixture()
+                .Create<Order>();
+
+            var countInvokation = 0;
+            var userName = "Vlad";
+            var password = "123";
+
+            var returnedUserName = string.Empty;
+            var returnedPassword = string.Empty;
+            
+            var restFactory = new RestImplementationBuilder()
+                .AddUrl("http://localhost:8080/")
+                .AddAuthentification(
+                    builder => builder.Basic(basic =>
+                    {
+                        basic.Password = password;
+                        basic.UserName = userName;
+                    }))
+                .AddHandler(new RequestHandlerStub(req =>
+                {
+                    countInvokation++;
+                    string encodedCredentials = req.Headers.Authorization.Parameter;
+                    
+                    var decodedCredentials = Encoding.UTF8.GetString(Convert.FromBase64String(encodedCredentials));
+
+                    var delimiterIndex = decodedCredentials.IndexOf(':');
+                    returnedUserName = decodedCredentials.Substring(0, delimiterIndex);
+                    returnedPassword = decodedCredentials.Substring(delimiterIndex + 1);
+                    
+                    
+                    var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
+                    {
+                        Content = new StringContent(JsonConvert.SerializeObject(order), Encoding.UTF8, "application/json")
+                    };
+
+                    return responseMessage;
+                }))
+                .Build();
+
+            var imp = restFactory.Create<ITestInterface>();
+
+            //Act
+            var response = await imp.GetOrder(1);
+            
+            //Assert
+            Assert.AreEqual(userName, returnedUserName);
+            Assert.AreEqual(password, returnedPassword);
+        }
 
         public class RequestHandlerStub : DelegatingHandler
         {

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
-using Castle.DynamicProxy;
 using Microsoft.Extensions.Options;
+using Vp.Rest.Client.Authentification;
+using Vp.Rest.Client.Authentification.DelegateConvertor;
 
 namespace Vp.Rest.Client
 {
@@ -28,9 +30,21 @@ namespace Vp.Rest.Client
             return this;
         }
         
-        public RestImplementationBuilder AddAuthentification(TimeSpan timeOut)
+        public RestImplementationBuilder AddAuthentification(Action<AuthentificationBuilder> authBuilderAction)
         {
-            _actions.Add(r => r.TimeOut = timeOut);
+            var authBuilder = new AuthentificationBuilder();
+            authBuilderAction(authBuilder);
+            var convertors = typeof(IAuthentificationDelegatingConvertor).Assembly
+                .GetTypes()
+                .Where(t => typeof(IAuthentificationDelegatingConvertor).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
+            var handlers = new List<DelegatingHandler>();
+            foreach (var convertor in convertors)
+            {
+                var con =  (IAuthentificationDelegatingConvertor) Activator.CreateInstance(convertor);
+                handlers.Add(con.Convert(authBuilder.AuthentificationOptionses));
+            }
+            _actions.Add(o => o.Handlers.AddRange(handlers));
             return this;
         }
         
