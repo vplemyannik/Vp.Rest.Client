@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Vp.Rest.Client.Authorization;
 using Vp.Rest.Client.Authorization.DelegateConvertor;
@@ -11,6 +12,7 @@ namespace Vp.Rest.Client
     public class RestImplementationBuilder
     {
         private readonly IList<Action<RestMethodOptions>> _actions = new List<Action<RestMethodOptions>>();
+        private readonly AuthentificationBuilder _authentificationBuilder = new AuthentificationBuilder();
 
         public RestImplementationBuilder WithHandler(DelegatingHandler handler)
         {
@@ -32,20 +34,19 @@ namespace Vp.Rest.Client
         
         public RestImplementationBuilder AddAuthentification(Action<AuthentificationBuilder> authBuilderAction)
         {
-            var authBuilder = new AuthentificationBuilder();
-            authBuilderAction(authBuilder);
-            var convertors = typeof(IAuthorizationHandlerFactory).Assembly
-                .GetTypes()
-                .Where(t => typeof(IAuthorizationHandlerFactory).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
-
-            var handlers = new List<DelegatingHandler>();
-            foreach (var convertor in convertors)
-            {
-                var con =  (IAuthorizationHandlerFactory) Activator.CreateInstance(convertor);
-                handlers.Add(con.CreateHandler(authBuilder.AuthentificationOptionses));
-            }
-            _actions.Add(o => o.Handlers.AddRange(handlers));
+            authBuilderAction(_authentificationBuilder);
             return this;
+        }
+
+        internal RestImplementation BuildInternal(IServiceProvider provider)
+        {
+            var factories = provider.GetServices<IAuthorizationHandlerFactory>();
+            foreach (var handlerFactory in factories)
+            {
+                _actions.Add(o => o.Handlers.Add(handlerFactory.CreateHandler(_authentificationBuilder.AuthentificationOptions)));
+            }
+
+            return Build();
         }
         
         public RestImplementation Build()

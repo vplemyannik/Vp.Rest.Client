@@ -16,7 +16,7 @@ namespace Vp.Rest.Client.Configuration
             {
                 collection.AddSingleton(map.InterfaceType, provider =>
                 {
-                    var factory = map.Builder.Build();
+                    var factory = map.Builder.BuildInternal(provider);
                     return factory.Create(map.InterfaceType);
 
                 });

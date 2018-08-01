@@ -5,13 +5,13 @@ namespace Vp.Rest.Client.Authorization
 {
     public class AuthentificationBuilder
     {
-        internal List<IAuthentificationOptions> AuthentificationOptionses { get; } = new List<IAuthentificationOptions>();
+        internal List<IAuthentificationOptions> AuthentificationOptions { get; } = new List<IAuthentificationOptions>();
 
         public void Basic(Action<BasicAuthentificationOptions> optionAction)
         {
             var createdOptions = new BasicAuthentificationOptions();
             optionAction(createdOptions);
-            AuthentificationOptionses.Add(createdOptions);
+            AuthentificationOptions.Add(createdOptions);
         }
     }
 
