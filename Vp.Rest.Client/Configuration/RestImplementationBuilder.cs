@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
+using Castle.Core.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Vp.Rest.Client.Authorization;
-using Vp.Rest.Client.Authorization.DelegateConvertor;
+using Vp.Rest.Client.Authorization.HandlerFactories;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
 
-namespace Vp.Rest.Client
+namespace Vp.Rest.Client.Configuration
 {
     public class RestImplementationBuilder
     {
@@ -38,14 +40,22 @@ namespace Vp.Rest.Client
             return this;
         }
 
-        internal RestImplementation BuildInternal(IServiceProvider provider)
+        internal RestImplementation Build(IServiceProvider provider)
         {
             var factories = provider.GetServices<IAuthorizationHandlerFactory>();
             foreach (var handlerFactory in factories)
             {
-                _actions.Add(o => o.Handlers.Add(handlerFactory.CreateHandler(_authentificationBuilder.AuthentificationOptions)));
+                var handler = handlerFactory.CreateHandler(_authentificationBuilder.AuthentificationOptions);
+                if(handler == null)
+                    continue;
+                _actions.Add(o => o.Handlers.Add(handler));
             }
-
+            var logger = provider.GetService<ILoggerFactory>();
+            if (logger != null)
+            {
+                _actions.Add(o => o.Handlers.Add(new RequestLoggingHandler(logger.CreateLogger("Request Logger"))));
+            }
+            
             return Build();
         }
         
@@ -56,7 +66,8 @@ namespace Vp.Rest.Client
             {
                 action(options);
             }
-
+            
+            options.Handlers.Add(new TimeOutHandler(options.TimeOut));
             return new RestImplementation(() => new RestMethodInterceptor(Options.Create(options)));
         }
     }

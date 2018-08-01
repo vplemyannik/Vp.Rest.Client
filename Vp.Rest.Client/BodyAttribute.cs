@@ -2,7 +2,7 @@
 
 namespace Vp.Rest.Client
 {
-    public class Body : Attribute
+    public class BodyAttribute : Attribute
     {
         
     }

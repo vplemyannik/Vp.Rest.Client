@@ -1,5 +1,6 @@
 ﻿using System;
 using Vp.Rest.Client;
+using Vp.Rest.Client.Configuration;
 
 namespace Sample.Google
 {

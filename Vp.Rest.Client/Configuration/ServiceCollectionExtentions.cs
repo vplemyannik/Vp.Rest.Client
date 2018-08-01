@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
+using Vp.Rest.Client.Authorization.HandlerFactories;
 
 namespace Vp.Rest.Client.Configuration
 {
@@ -16,11 +17,13 @@ namespace Vp.Rest.Client.Configuration
             {
                 collection.AddSingleton(map.InterfaceType, provider =>
                 {
-                    var factory = map.Builder.BuildInternal(provider);
+                    var factory = map.Builder.Build(provider);
                     return factory.Create(map.InterfaceType);
 
                 });
             }
+
+            collection.AddSingleton<IAuthorizationHandlerFactory, BasicAuthorizationHandlerFactory>();
             
             return collection;
         }

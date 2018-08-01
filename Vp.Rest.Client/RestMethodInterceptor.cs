@@ -9,14 +9,15 @@ using Castle.Core.Internal;
 using Castle.DynamicProxy;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Vp.Rest.Client.Builders;
 using Vp.Rest.Client.Content;
 using Vp.Rest.Client.Models;
 
 namespace Vp.Rest.Client
 {
-    public class RestMethodInterceptor : IRestMethodInterceptor
+    public class RestMethodInterceptor : IInterceptor
     {
-        private readonly IOptions<RestMethodOptions> _options;
+        private readonly RestMethodOptions _options;
 
         private readonly IDictionary<RestMethod, HttpMethod> _httpMethodMap 
             = new Dictionary<RestMethod, HttpMethod>
@@ -29,7 +30,7 @@ namespace Vp.Rest.Client
             {RestMethod.OPTION, HttpMethod.Options},
         };
 
-        private readonly IDictionary<string, Lazy<IContentManager>> _contentFactory =
+        private readonly IDictionary<string, Lazy<IContentManager>> _contentProvider =
             new Dictionary<string, Lazy<IContentManager>>
             {
                 { "application/json", new Lazy<IContentManager>(() => new JsonContentManager())},
@@ -38,13 +39,13 @@ namespace Vp.Rest.Client
 
         public RestMethodInterceptor(IOptions<RestMethodOptions> options)
         {
-            _options = options;
+            _options = options.Value;
         }
 
         public void Intercept(IInvocation invocation)
         {
             var method = invocation.GetConcreteMethod();
-            var client = CreateHttpClient(invocation);
+            var client = HttpClientBuilder.Build(_options.Handlers);
 
             var restAttribute = method.GetAttribute<RestAttribute>();
             
@@ -57,7 +58,7 @@ namespace Vp.Rest.Client
                         => new Parameter(paramInfo, value));
 
 
-            var relativeUrl = UriBuilder.Buld(restAttribute.TemplatePath, parameters);
+            var relativeUrl = UriBuilder.Build(restAttribute.TemplatePath, parameters);
 
             var content = CreateHttpContent(parameters, restAttribute.ContetnType);
 
@@ -72,7 +73,7 @@ namespace Vp.Rest.Client
             HttpContent content,
             IEnumerable<KeyValuePair<string, string>> headers)
         {
-            var request = new HttpRequestMessage(method, _options.Value.Url + relativeUrl);
+            var request = new HttpRequestMessage(method, _options.Url + relativeUrl);
             
             foreach (var header in headers ?? Enumerable.Empty<KeyValuePair<string, string>>())
             {
@@ -112,7 +113,7 @@ namespace Vp.Rest.Client
                     if (currentTask.Status == TaskStatus.RanToCompletion)
                     {
                         var content = currentTask.Result.Content;
-                        var contentManger = _contentFactory[content.Headers.ContentType.MediaType];
+                        var contentManger = _contentProvider[content.Headers.ContentType.MediaType];
                         var responseTask = contentManger.Value.ReadContent(content, unwrapType);
                         responseTask.ContinueWith(readTask =>
                         {
@@ -131,71 +132,20 @@ namespace Vp.Rest.Client
            
         }
 
-        private HttpClient CreateHttpClient(IInvocation invocation)
-        {
-            return new HttpClient(CreateHttpMessageHandler(invocation));
-        }
-        
-        private HttpMessageHandler CreateHttpMessageHandler(IInvocation invocation)
-        {
-            var primatyHandler = new HttpClientHandler();
-            if(_options.Value.Handlers == null || !_options.Value.Handlers.Any())
-                return new HttpClientHandler();
-            return CreateHandlerPipeline(primatyHandler, _options.Value.Handlers);
-        }
-
         private HttpContent CreateHttpContent(IEnumerable<Parameter> parameters, string contentType)
         {
             var bodyParameter = parameters
-                .FirstOrDefault(p => p.ParameterInfo.GetCustomAttribute<Body>() != null);
+                .FirstOrDefault(p => p.ParameterInfo.GetCustomAttribute<BodyAttribute>() != null);
             
             if(bodyParameter == null)
                 return null;
 
-            var contentManager = _contentFactory[contentType];
+            var contentManager = _contentProvider[contentType];
 
             return contentManager.Value.CreateContent(bodyParameter.Value);
         }
 
-        private static HttpMessageHandler CreateHandlerPipeline(HttpMessageHandler primaryHandler, IEnumerable<DelegatingHandler> additionalHandlers)
-        {
-            // This is similar to https://github.com/aspnet/AspNetWebStack/blob/master/src/System.Net.Http.Formatting/HttpClientFactory.cs#L58
-            // but we don't want to take that package as a dependency.
-
-            if (primaryHandler == null)
-            {
-                throw new ArgumentNullException(nameof(primaryHandler));
-            }
-
-            if (additionalHandlers == null)
-            {
-                throw new ArgumentNullException(nameof(additionalHandlers));
-            }
-
-            var additionalHandlersList = additionalHandlers as IReadOnlyList<DelegatingHandler> ?? additionalHandlers.ToArray();
-
-            var next = primaryHandler;
-            for (var i = additionalHandlersList.Count - 1; i >= 0; i--)
-            {
-                var handler = additionalHandlersList[i];
-                if (handler == null)
-                {
-                    throw new InvalidOperationException("There is no handler");
-                }
-
-                // Checking for this allows us to catch cases where someone has tried to re-use a handler. That really won't
-                // work the way you want and it can be tricky for callers to figure out.
-                if (handler.InnerHandler != null)
-                {
-                    throw new InvalidOperationException("Inner handler is not null");
-                }
-
-                handler.InnerHandler = next;
-                next = handler;
-            }
-
-            return next;
-        }
+       
         
     }
 }

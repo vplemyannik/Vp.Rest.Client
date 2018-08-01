@@ -8,6 +8,6 @@ namespace Vp.Rest.Client
     {
         public List<DelegatingHandler> Handlers { get; } = new List<DelegatingHandler>();
         public string Url { get; internal set; }
-        public TimeSpan  TimeOut { get; internal set; }
+        public TimeSpan  TimeOut { get; internal set; } = TimeSpan.FromSeconds(100);
     }
 }

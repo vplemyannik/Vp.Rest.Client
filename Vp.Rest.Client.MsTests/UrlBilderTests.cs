@@ -21,7 +21,7 @@ namespace Vp.Rest.Client.MsTests
                 new Parameter("orderQuery", "price"),
             };
             
-            var result = UriBuilder.Buld(testUrl, dictionary);
+            var result = UriBuilder.Build(testUrl, dictionary);
             
             Assert.AreEqual(exceptedUrl, result);
         }

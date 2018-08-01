@@ -3,7 +3,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 
-namespace Vp.Rest.Client.Authorization.DelegateConvertor
+namespace Vp.Rest.Client.Authorization.HandlerFactories
 {
     public abstract class DefaultAuthorizationHandlerFactory<TOptions> : IAuthorizationHandlerFactory
     {

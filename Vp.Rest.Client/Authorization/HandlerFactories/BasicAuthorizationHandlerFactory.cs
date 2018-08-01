@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Vp.Rest.Client.Authorization.DelegateConvertor
+namespace Vp.Rest.Client.Authorization.HandlerFactories
 {
     public class BasicAuthorizationHandlerFactory : DefaultAuthorizationHandlerFactory<BasicAuthentificationOptions>
     {

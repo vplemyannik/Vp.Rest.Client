@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AutoFixture;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using Vp.Rest.Client.Configuration;
@@ -116,11 +117,7 @@ namespace Vp.Rest.Client.MsTests
             var restFactory = new RestImplementationBuilder()
                 .WithBaseUrl("http://localhost:8080/")
                 .AddAuthentification(
-                    builder => builder.Basic(basic =>
-                    {
-                        basic.Password = password;
-                        basic.UserName = userName;
-                    }))
+                    authBuilder => authBuilder.Basic(userName, password))
                 .WithHandler(new RequestHandlerStub(req =>
                 {
                     countInvokation++;
@@ -175,6 +172,13 @@ namespace Vp.Rest.Client.MsTests
 
                             return responseMessage;
                         }));
+                });
+
+                
+                services.AddLogging(b =>
+                {
+                    b.AddConsole();
+                    b.AddDebug();
                 });
             });
 

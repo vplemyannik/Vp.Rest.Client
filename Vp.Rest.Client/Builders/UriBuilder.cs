@@ -12,7 +12,7 @@ namespace Vp.Rest.Client
         private const char BR_RIGHT = '}';
         private const char BR_LEFT = '{';
         
-        public static string Buld(string url, IEnumerable<Parameter> parameters)
+        public static string Build(string url, IEnumerable<Parameter> parameters)
         {
             var templateBuilder = new StringBuilder(32);
             var urlTemplate = new StringBuilder(url);

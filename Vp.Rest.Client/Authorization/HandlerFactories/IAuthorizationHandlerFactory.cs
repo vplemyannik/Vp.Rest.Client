@@ -2,7 +2,7 @@
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace Vp.Rest.Client.Authorization.DelegateConvertor
+namespace Vp.Rest.Client.Authorization.HandlerFactories
 {
     public interface IAuthorizationHandlerFactory
     {
