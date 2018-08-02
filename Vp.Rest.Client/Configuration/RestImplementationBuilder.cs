@@ -15,10 +15,11 @@ namespace Vp.Rest.Client.Configuration
     {
         private readonly IList<Action<RestMethodOptions>> _actions = new List<Action<RestMethodOptions>>();
         private readonly AuthentificationBuilder _authentificationBuilder = new AuthentificationBuilder();
+        private readonly List<DelegatingHandler> _customeHandlers = new List<DelegatingHandler>();
 
         public RestImplementationBuilder WithHandler(DelegatingHandler handler)
         {
-            _actions.Add(rest => rest.Handlers.Add(handler));
+            _customeHandlers.Add(handler);
             return this;
         }
         
@@ -50,10 +51,10 @@ namespace Vp.Rest.Client.Configuration
                     continue;
                 _actions.Add(o => o.Handlers.Add(handler));
             }
-            var logger = provider.GetService<ILoggerFactory>();
-            if (logger != null)
+            var loggerFactory = provider.GetService<ILoggerFactory>();
+            if (loggerFactory != null)
             {
-                _actions.Add(o => o.Handlers.Add(new RequestLoggingHandler(logger.CreateLogger("Request Logger"))));
+                _actions.Add(o => o.Handlers.Add(new RequestLoggingHandler(loggerFactory.CreateLogger("Request Logger"))));
             }
             
             return Build();
@@ -68,6 +69,7 @@ namespace Vp.Rest.Client.Configuration
             }
             
             options.Handlers.Add(new TimeOutHandler(options.TimeOut));
+            options.Handlers.AddRange(_customeHandlers);
             return new RestImplementation(() => new RestMethodInterceptor(Options.Create(options)));
         }
     }

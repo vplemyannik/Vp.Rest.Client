@@ -52,8 +52,8 @@ namespace Vp.Rest.Client
             }
 
             var stringBuilder = new StringBuilder(1024);
-            stringBuilder.Append($"METHOD: {request.Method.Method}");
-            stringBuilder.Append($"EXECUTION TIME: {stopwatch.Elapsed}");
+            stringBuilder.AppendLine($"METHOD: {request.Method.Method}");
+            stringBuilder.AppendLine($"EXECUTION TIME: {stopwatch.Elapsed}");
             stringBuilder.AppendLine($"URI: {request.RequestUri}");
             stringBuilder.AppendLine($"REQUEST HEADERS: ");
             foreach (var header in GetHeaders(request.Headers))
@@ -63,8 +63,8 @@ namespace Vp.Rest.Client
                 
             }
             stringBuilder.AppendLine($"REQUEST: {requestString}");
-            stringBuilder.AppendLine($"RESPONSE CODE: {responseMessage.StatusCode}");
-            stringBuilder.AppendLine($"RESPONSE CODE: {responseMessage.StatusCode}");
+            stringBuilder.AppendLine($"RESPONSE CODE: {(int)responseMessage.StatusCode}");
+            stringBuilder.AppendLine($"RESPONSE: {responseString}");
             stringBuilder.AppendLine($"RESPONSE HEADERS: ");
             foreach (var header in GetHeaders(responseMessage.Headers))
             {
@@ -73,7 +73,7 @@ namespace Vp.Rest.Client
                 
             }
 
-            _logger.Log(LogLevel.Information, stringBuilder.ToString());
+            _logger.Log(LogLevel.Debug, stringBuilder.ToString());
 
             return responseMessage;
         }

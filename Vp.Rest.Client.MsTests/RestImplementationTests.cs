@@ -174,12 +174,7 @@ namespace Vp.Rest.Client.MsTests
                         }));
                 });
 
-                
-                services.AddLogging(b =>
-                {
-                    b.AddConsole();
-                    b.AddDebug();
-                });
+                services.AddLogging(b => b.AddDebug());
             });
 
             var client = provider.GetRequiredService<ITestInterface>();
