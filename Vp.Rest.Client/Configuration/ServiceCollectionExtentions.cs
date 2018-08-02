@@ -1,6 +1,5 @@
 ﻿using System;
 using Microsoft.Extensions.DependencyInjection;
-using Vp.Rest.Client.Authorization.HandlerFactories;
 
 namespace Vp.Rest.Client.Configuration
 {
@@ -13,18 +12,16 @@ namespace Vp.Rest.Client.Configuration
             var builder = new RestClientConfigurationBuilder();
             builderAction(builder);
 
-            foreach (var map in builder.BuilderTypeMap)
-            {
-                collection.AddSingleton(map.InterfaceType, provider =>
-                {
-                    var factory = map.Builder.Build(provider);
-                    return factory.Create(map.InterfaceType);
+//            foreach (var map in builder.BuilderTypeMap)
+//            {
+//                collection.AddSingleton(map.InterfaceType, provider =>
+//                {
+//                    var factory = map.Builder.Build(provider);
+//                    return factory.Create(map.InterfaceType);
+//
+//                });
+//            }
 
-                });
-            }
-
-            collection.AddSingleton<IAuthorizationHandlerFactory, BasicAuthorizationHandlerFactory>();
-            
             return collection;
         }
     }

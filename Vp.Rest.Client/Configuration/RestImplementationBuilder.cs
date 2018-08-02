@@ -1,20 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Http;
-using Castle.Core.Logging;
-using Microsoft.Extensions.DependencyInjection;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
-using Vp.Rest.Client.Authorization;
-using Vp.Rest.Client.Authorization.HandlerFactories;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
-using ILoggerFactory = Microsoft.Extensions.Logging.ILoggerFactory;
 
 namespace Vp.Rest.Client.Configuration
 {
     public class RestImplementationBuilder
     {
         private readonly IList<Action<RestMethodOptions>> _actions = new List<Action<RestMethodOptions>>();
-        private readonly AuthentificationBuilder _authentificationBuilder = new AuthentificationBuilder();
         private readonly List<DelegatingHandler> _customeHandlers = new List<DelegatingHandler>();
 
         public RestImplementationBuilder WithHandler(DelegatingHandler handler)
@@ -35,29 +29,12 @@ namespace Vp.Rest.Client.Configuration
             return this;
         }
         
-        public RestImplementationBuilder AddAuthentification(Action<AuthentificationBuilder> authBuilderAction)
+        public RestImplementationBuilder AddLogging(
+            Func<HttpRequestMessage, Task> logRequest, 
+            Func<HttpResponseMessage, Task> logResponse)
         {
-            authBuilderAction(_authentificationBuilder);
+            _actions.Add(o => o.Handlers.Add(new RequestLoggingHandler(logRequest, logResponse)));
             return this;
-        }
-
-        internal RestImplementation Build(IServiceProvider provider)
-        {
-            var factories = provider.GetServices<IAuthorizationHandlerFactory>();
-            foreach (var handlerFactory in factories)
-            {
-                var handler = handlerFactory.CreateHandler(_authentificationBuilder.AuthentificationOptions);
-                if(handler == null)
-                    continue;
-                _actions.Add(o => o.Handlers.Add(handler));
-            }
-            var loggerFactory = provider.GetService<ILoggerFactory>();
-            if (loggerFactory != null)
-            {
-                _actions.Add(o => o.Handlers.Add(new RequestLoggingHandler(loggerFactory.CreateLogger("Request Logger"))));
-            }
-            
-            return Build();
         }
         
         public RestImplementation Build()

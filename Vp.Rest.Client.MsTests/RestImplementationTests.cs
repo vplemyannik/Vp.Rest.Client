@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -116,8 +117,7 @@ namespace Vp.Rest.Client.MsTests
             
             var restFactory = new RestImplementationBuilder()
                 .WithBaseUrl("http://localhost:8080/")
-                .AddAuthentification(
-                    authBuilder => authBuilder.Basic(userName, password))
+                .WithHandler(new BasicAuthHandler(userName, password))
                 .WithHandler(new RequestHandlerStub(req =>
                 {
                     countInvokation++;
@@ -207,6 +207,30 @@ namespace Vp.Rest.Client.MsTests
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 return Task.FromResult(_response(request));
+            }
+        }
+        
+        public class BasicAuthHandler : DelegatingHandler
+        {
+            private string UserName { get; }
+            private string Password { get; }
+            
+            public BasicAuthHandler(string userName, string password)
+            {
+                UserName = userName;
+                Password = password;
+            }
+            
+            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+            {
+                var credentials = Convert.ToBase64String(
+                    Encoding.UTF8.GetBytes(
+                        $"{UserName}:{Password}"
+                    )
+                );
+            
+                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
+                return base.SendAsync(request, cancellationToken);
             }
         }
     }

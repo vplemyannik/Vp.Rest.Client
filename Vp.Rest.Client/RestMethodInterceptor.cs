@@ -62,18 +62,18 @@ namespace Vp.Rest.Client
 
             var content = CreateHttpContent(parameters, restAttribute.ContetnType);
 
-            var request = CreateHttpRequest(httpMethod, relativeUrl, content, null);
+            var request = CreateHttpRequest(httpMethod, new Uri(relativeUrl, UriKind.Relative), content, null);
             Execute(invocation, client, request);
 
         }
 
         private HttpRequestMessage CreateHttpRequest( 
             HttpMethod method, 
-            string relativeUrl, 
+            Uri relativeUrl, 
             HttpContent content,
             IEnumerable<KeyValuePair<string, string>> headers)
         {
-            var request = new HttpRequestMessage(method, _options.Url + relativeUrl);
+            var request = new HttpRequestMessage(method, new Uri(new Uri(_options.Url, UriKind.Absolute), relativeUrl));
             
             foreach (var header in headers ?? Enumerable.Empty<KeyValuePair<string, string>>())
             {
