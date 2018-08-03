@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Vp.RestClient.Authorization;
 using Vp.RestClient.Extensions;
 using Vp.RestClient.Configuration;
 
@@ -118,7 +119,7 @@ namespace Vp.RestClient.MsTests
             
             var restFactory = new RestImplementationBuilder()
                 .WithBaseUrl("http://localhost:8080/")
-                .WithHandler(new BasicAuthHandler(userName, password))
+                .AddBasicAuthorization(userName, password)
                 .WithHandler(new RequestHandlerStub(req =>
                 {
                     countInvokation++;
@@ -208,30 +209,6 @@ namespace Vp.RestClient.MsTests
             protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
             {
                 return Task.FromResult(_response(request));
-            }
-        }
-        
-        public class BasicAuthHandler : DelegatingHandler
-        {
-            private string UserName { get; }
-            private string Password { get; }
-            
-            public BasicAuthHandler(string userName, string password)
-            {
-                UserName = userName;
-                Password = password;
-            }
-            
-            protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-            {
-                var credentials = Convert.ToBase64String(
-                    Encoding.UTF8.GetBytes(
-                        $"{UserName}:{Password}"
-                    )
-                );
-            
-                request.Headers.Authorization = new AuthenticationHeaderValue("Basic", credentials);
-                return base.SendAsync(request, cancellationToken);
             }
         }
     }
