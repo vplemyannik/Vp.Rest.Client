@@ -15,7 +15,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sample.ClientApi", "Sample.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vp.RestClient.Tests", "Vp.RestClient.Tests\Vp.RestClient.Tests.csproj", "{3F13BE24-FA88-4565-92B1-88F05827A681}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vp.Extensions.RestClient", "Vp.Extensions.RestClient\Vp.Extensions.RestClient.csproj", "{D7615526-4F07-4E95-BDA9-930C45B6E1D4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vp.RestClient.Extensions", "Vp.RestClient.Extensions\Vp.RestClient.Extensions.csproj", "{D7615526-4F07-4E95-BDA9-930C45B6E1D4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

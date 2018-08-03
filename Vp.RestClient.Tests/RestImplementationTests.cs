@@ -11,6 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
+using Vp.RestClient.Extensions;
 using Vp.RestClient.Configuration;
 
 namespace Vp.RestClient.MsTests
