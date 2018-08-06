@@ -27,7 +27,7 @@ The library implements your interface at runtime.
 
 ```csharp
  var  apiClient = restFactory.Create<TodosApiContract>();
-                var result = await apiClient.GetTodos(1);
+ var result = await apiClient.GetTodos(1);
 ```
 
 You can also:
@@ -36,7 +36,7 @@ You can also:
   - Add yourown Delegating handler
 
 
-# Integration with .NEt core DI
+# Integration with .Net Core DI
 
 ```csharp
 services.RegisterClients(restBuilder =>
