@@ -12,6 +12,15 @@ The library implements your interface at runtime.
     {
         [Rest(RestMethod.GET, "todos/{todosId}")]
         Task<Todos> GetTodos(int todosId);
+        
+        [Rest(RestMethod.POST, "todos")]
+        Task CreateTodos(Todos todos);
+        
+        [Rest(RestMethod.PUT, "todos/1")]
+        Task UpdateTodos(Todos todos);
+        
+        [Rest(RestMethod.DELETE, "todos/{todosId}")]
+        Task DeleteTodos(int todosId);
     }
 ```
 2. Define Settings for client
@@ -26,8 +35,18 @@ The library implements your interface at runtime.
 3. Usage
 
 ```csharp
+
+var todos = new Todos
+{
+    UserId = 1,
+    Title = "title"
+    Completed = false
+};
+
  var  apiClient = restFactory.Create<TodosApiContract>();
+ await apiClient.CreateTodos(todos);
  Todos result = await apiClient.GetTodos(1);
+ await apiClient.DeleteTodos(todos);
 ```
 
 You can also:
