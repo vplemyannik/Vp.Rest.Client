@@ -27,7 +27,7 @@ The library implements your interface at runtime.
 
 ```csharp
  var  apiClient = restFactory.Create<TodosApiContract>();
- var result = await apiClient.GetTodos(1);
+ Todos result = await apiClient.GetTodos(1);
 ```
 
 You can also:
