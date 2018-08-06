@@ -5,7 +5,7 @@ The library implements your interface at runtime.
 
 # Example
 
-1. Interface definition
+1. Define contract
 
 ```csharp
     public interface TodosApiContract
