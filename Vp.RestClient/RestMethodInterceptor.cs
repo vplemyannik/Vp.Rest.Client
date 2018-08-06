@@ -11,6 +11,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Vp.RestClient.Builders;
 using Vp.RestClient.Content;
+using Vp.RestClient.Exceptions;
 using Vp.RestClient.Models;
 
 namespace Vp.RestClient
@@ -104,7 +105,7 @@ namespace Vp.RestClient
 
                     if (!responseTask.Result.IsSuccessStatusCode)
                     {
-                        
+                        throw new HttpResponseException(responseTask.Result.StatusCode);
                     }
                 });
                 invocation.ReturnValue = task;
@@ -124,7 +125,7 @@ namespace Vp.RestClient
 
                     else if (!responseTask.Result.IsSuccessStatusCode)
                     {
-                        
+                        throw new HttpResponseException(responseTask.Result.StatusCode);
                     }
                     else
                     {
