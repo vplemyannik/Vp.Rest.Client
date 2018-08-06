@@ -14,10 +14,10 @@ The library implements your interface at runtime.
         Task<Todos> GetTodos(int todosId);
         
         [Rest(RestMethod.POST, "todos")]
-        Task CreateTodos(Todos todos);
+        Task<Todos> CreateTodos(Todos todos);
         
-        [Rest(RestMethod.PUT, "todos/1")]
-        Task UpdateTodos(Todos todos);
+        [Rest(RestMethod.PUT, "todos/{todosId}")]
+        Task UpdateTodos(Todos todos, int todosId);
         
         [Rest(RestMethod.DELETE, "todos/{todosId}")]
         Task DeleteTodos(int todosId);
@@ -44,9 +44,9 @@ var todos = new Todos
 };
 
  var  apiClient = restFactory.Create<TodosApiContract>();
- await apiClient.CreateTodos(todos);
- Todos result = await apiClient.GetTodos(1);
- await apiClient.DeleteTodos(todos);
+ todos = await apiClient.CreateTodos(todos);
+ Todos result = await apiClient.GetTodos(todos.Id);
+ await apiClient.DeleteTodos(result.Id);
 ```
 
 You can also:
