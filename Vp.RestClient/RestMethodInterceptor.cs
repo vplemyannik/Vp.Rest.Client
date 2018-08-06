@@ -95,6 +95,18 @@ namespace Vp.RestClient
             if (restMethodInfo.ReturnType == typeof(Task))
             {
                 task = client.SendAsync(requestMessage);
+                task.ContinueWith(responseTask =>
+                {
+                    if (responseTask.IsFaulted)
+                    {
+                        throw GetExceptionToTrow(responseTask.Exception);
+                    }
+
+                    if (!responseTask.Result.IsSuccessStatusCode)
+                    {
+                        
+                    }
+                });
                 invocation.ReturnValue = task;
             }
 
@@ -103,23 +115,31 @@ namespace Vp.RestClient
                 task = client.SendAsync(requestMessage);
                 var unwrapType = restMethodInfo.ReturnType.GetGenericArguments()[0];
                 var completion = ReflectionHelper.CreateCompletionTaskSourceForType(unwrapType);
-                task.ContinueWith(currentTask =>
+                task.ContinueWith(responseTask =>
                 {
-                    if (currentTask.IsFaulted)
+                    if (responseTask.IsFaulted)
                     {
-                        completion.SetException(currentTask.Exception);
+                        completion.SetException(GetExceptionToTrow(responseTask.Exception));
                     }
 
-                    if (currentTask.Status == TaskStatus.RanToCompletion)
+                    else if (!responseTask.Result.IsSuccessStatusCode)
                     {
-                        var content = currentTask.Result.Content;
+                        
+                    }
+                    else
+                    {
+                        var content = responseTask.Result.Content;
                         var contentManger = _contentProvider[content.Headers.ContentType.MediaType];
-                        var responseTask = contentManger.Value.ReadContent(content, unwrapType);
-                        responseTask.ContinueWith(readTask =>
+                        var readTask = contentManger.Value.ReadContent(content, unwrapType);
+                        responseTask.ContinueWith(currentTask =>
                         {
                             if (readTask.IsFaulted)
                             {
-                                completion.SetException(readTask.Exception);
+                                completion.SetException(GetExceptionToTrow(readTask.Exception));
+                            }
+                            if (currentTask.IsCanceled)
+                            {
+                                completion.SetCancelled();
                             }
 
                             completion.SetResult(readTask.Result);
@@ -130,6 +150,17 @@ namespace Vp.RestClient
                 invocation.ReturnValue = completion.Task;
             }
            
+        }
+        
+        private static Exception GetExceptionToTrow(AggregateException exception)
+        {
+            exception = exception.Flatten();
+            if (exception.InnerExceptions.Count == 1)
+            {
+                return exception.InnerExceptions[0];
+            }
+
+            return exception;
         }
 
         private HttpContent CreateHttpContent(IEnumerable<Parameter> parameters, string contentType)
