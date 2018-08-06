@@ -6,7 +6,8 @@ The library implements your interface at runtime.
 # Example
 
 1. Interface definition
-```
+
+```csharp
     public interface TodosApiContract
     {
         [Rest(RestMethod.GET, "todos/{todosId}")]
@@ -14,7 +15,8 @@ The library implements your interface at runtime.
     }
 ```
 2. Define Settings for client
-```
+
+```csharp
  var restFactory = new RestImplementationBuilder()
                 .WithBaseUrl("https://jsonplaceholder.typicode.com/")
                 .WithTimeout(TimeSpan.FromSeconds(60))
@@ -22,7 +24,8 @@ The library implements your interface at runtime.
 ```
 
 3. Usage
-```
+
+```csharp
  var  apiClient = restFactory.Create<TodosApiContract>();
                 var result = await apiClient.GetTodos(1);
 ```
@@ -35,15 +38,15 @@ You can also:
 
 # Integration with .NEt core DI
 
-```
-            services.RegisterClients(restBuilder =>
-                {
-                    restBuilder.AddClient<TodosApiContract>("https://jsonplaceholder.typicode.com/");
-                });
+```csharp
+services.RegisterClients(restBuilder =>
+    {
+        restBuilder.AddClient<TodosApiContract>("https://jsonplaceholder.typicode.com/");
+    });
 ```
 
 And getting from service provider 
 
-```
-        var client = provider.GetRequiredService<TodosApiContract>();
+```csharp
+var client = provider.GetRequiredService<TodosApiContract>();
 ```
