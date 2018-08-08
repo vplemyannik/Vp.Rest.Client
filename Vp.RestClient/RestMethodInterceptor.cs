@@ -16,7 +16,7 @@ using Vp.RestClient.Models;
 
 namespace Vp.RestClient
 {
-    public class RestMethodInterceptor : IInterceptor
+    internal class RestMethodInterceptor : IInterceptor
     {
         private readonly RestMethodOptions _options;
 
@@ -46,7 +46,7 @@ namespace Vp.RestClient
         public void Intercept(IInvocation invocation)
         {
             var method = invocation.GetConcreteMethod();
-            var client = HttpClientBuilder.Build(_options.Handlers);
+            var client = _options.HttpClient ?? HttpClientBuilder.Build(_options.Handlers);
 
             var restAttribute = method.GetAttribute<RestAttribute>();
             

@@ -19,6 +19,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vp.RestClient.Extensions", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vp.RestClient.Authorization", "Vp.RestClient.Authorization\Vp.RestClient.Authorization.csproj", "{ABD6918D-63C1-4467-8851-2412104173F2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vp.RestClient.Integration.Tests", "Vp.RestClient.Integration.Tests\Vp.RestClient.Integration.Tests.csproj", "{CF7AF129-916C-453C-B652-AC6E22897AD0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{ABD6918D-63C1-4467-8851-2412104173F2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABD6918D-63C1-4467-8851-2412104173F2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABD6918D-63C1-4467-8851-2412104173F2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF7AF129-916C-453C-B652-AC6E22897AD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF7AF129-916C-453C-B652-AC6E22897AD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF7AF129-916C-453C-B652-AC6E22897AD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF7AF129-916C-453C-B652-AC6E22897AD0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -55,6 +61,7 @@ Global
 		{3F13BE24-FA88-4565-92B1-88F05827A681} = {C8AF3210-811D-450E-9817-FCB3728AA548}
 		{D7615526-4F07-4E95-BDA9-930C45B6E1D4} = {843B4471-E734-4738-B84B-3F88022D145C}
 		{ABD6918D-63C1-4467-8851-2412104173F2} = {843B4471-E734-4738-B84B-3F88022D145C}
+		{CF7AF129-916C-453C-B652-AC6E22897AD0} = {C8AF3210-811D-450E-9817-FCB3728AA548}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {829B5AD7-A6C7-4ADB-AE0E-257D384A8146}

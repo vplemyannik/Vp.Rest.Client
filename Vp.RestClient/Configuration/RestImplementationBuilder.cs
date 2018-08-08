@@ -28,6 +28,12 @@ namespace Vp.RestClient.Configuration
             _actions.Add(r => r.TimeOut = timeOut);
             return this;
         }
+
+        internal RestImplementationBuilder WithHttpClient(HttpClient client)
+        {
+            _actions.Add(r => r.HttpClient = client);
+            return this;
+        }
         
         public RestImplementationBuilder AddLogging(
             Func<HttpRequestMessage, Task> logRequest, 
