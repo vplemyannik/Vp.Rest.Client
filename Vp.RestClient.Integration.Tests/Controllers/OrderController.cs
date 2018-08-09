@@ -31,5 +31,20 @@ namespace Vp.RestClient.IntergrationTests.Controllers
             order.Id = id;
             return Task.FromResult<IActionResult>(Ok(order));
         }
+        
+        [HttpPut]
+        public Task<IActionResult> UpdateOrder([FromBody] Order order)
+        {
+            _repository.UpdateOrder(order);
+            return Task.FromResult<IActionResult>(Ok(order));
+        }
+        
+        [HttpDelete]
+        [Route("{id}")]
+        public Task<IActionResult> DeleteOrder(Guid id)
+        {
+            _repository.DeleteOrder(id);
+            return Task.FromResult<IActionResult>(Ok());
+        }
     }
 }

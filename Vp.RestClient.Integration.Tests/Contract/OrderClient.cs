@@ -11,8 +11,8 @@ namespace Vp.RestClient.IntergrationTests.Models
         [Rest(RestMethod.POST, "")]
         Task<OrderModel> CreateOrder([Body] OrderModel order);
         
-        [Rest(RestMethod.PUT, "{orderId}")]
-        Task UpdateOrder([Body] OrderModel order, Guid orderId);
+        [Rest(RestMethod.PUT, "")]
+        Task UpdateOrder([Body] OrderModel order);
         
         [Rest(RestMethod.DELETE, "{orderId}")]
         Task DeleteOrder(Guid orderId);

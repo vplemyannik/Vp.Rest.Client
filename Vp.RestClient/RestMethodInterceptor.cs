@@ -63,14 +63,14 @@ namespace Vp.RestClient
 
             var content = CreateHttpContent(parameters, restAttribute.ContetnType);
 
-            var request = CreateHttpRequest(httpMethod, new Uri(relativeUrl, UriKind.Relative), content, null);
+            var request = CreateHttpRequest(httpMethod, relativeUrl, content, null);
             Execute(invocation, client, request);
 
         }
 
         private HttpRequestMessage CreateHttpRequest( 
             HttpMethod method, 
-            Uri relativeUrl, 
+            string relativeUrl, 
             HttpContent content,
             IEnumerable<KeyValuePair<string, string>> headers)
         {
@@ -130,7 +130,7 @@ namespace Vp.RestClient
                     else
                     {
                         var content = responseTask.Result.Content;
-                        var contentManger = _contentProvider[content.Headers.ContentType.MediaType];
+                        var contentManger = _contentProvider[content.Headers.ContentType?.MediaType ?? JsonContentManager.ContentType];
                         var readTask = contentManger.Value.ReadContent(content, unwrapType);
                         responseTask.ContinueWith(currentTask =>
                         {

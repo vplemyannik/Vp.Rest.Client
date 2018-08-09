@@ -25,7 +25,7 @@ namespace Vp.RestClient.IntergrationTests
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            services.AddTransient<IOrderRepository, OrderRepository>();
+            services.AddSingleton<IOrderRepository, OrderRepository>();
         }
 
         // Use this method to configure the HTTP request pipeline.

@@ -20,7 +20,7 @@ namespace Vp.RestClient.IntergrationTests
         {
             _server =  Initializer.InitializeServer();
             var clientBuilder = new RestImplementationBuilder()
-                .WithBaseUrl("http://localhost:54200/api/orders")
+                .WithBaseUrl("http://localhost:54200/api/orders/")
                 .WithTimeout(TimeSpan.FromSeconds(30))
                 .WithHttpClient(_server.CreateClient())
                 .Build();
@@ -60,7 +60,9 @@ namespace Vp.RestClient.IntergrationTests
             order.CustomerName = Guid.NewGuid().ToString();
             
             //Act UPDATE
-            await _client.UpdateOrder(order, order.Id);
+            await _client.UpdateOrder(order);
+            
+            order = await _client.GetOrder(order.Id);
             
             //Assert UPDATE
             Assert.AreNotEqual(oldName, order.CustomerName);
@@ -70,8 +72,8 @@ namespace Vp.RestClient.IntergrationTests
             
             order = await _client.GetOrder(order.Id);
             
-            //Assert UPDATE
-            Assert.IsNotNull(order);
+            //Assert DELETE
+            Assert.IsNull(order);
         }
         
 

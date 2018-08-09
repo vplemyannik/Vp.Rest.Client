@@ -9,7 +9,7 @@ namespace Vp.RestClient.Content
 {
     public class JsonContentManager : IContentManager
     {
-        private string ContentType => "application/json"; 
+        public static string ContentType => "application/json"; 
         
         public HttpContent CreateContent(object content)
         {

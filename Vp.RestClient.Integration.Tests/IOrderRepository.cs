@@ -12,7 +12,7 @@ namespace Vp.RestClient.IntergrationTests
         
         void UpdateOrder(Order order);
         
-        void DeleteOrder(Order order);
+        void DeleteOrder(Guid orderId);
     }
 
     public class OrderRepository : IOrderRepository
@@ -21,6 +21,10 @@ namespace Vp.RestClient.IntergrationTests
         
         public Order GetOrder(Guid orderId)
         {
+            if (!_orderStore.ContainsKey(orderId))
+            {
+                return null;
+            }
             return _orderStore[orderId];
         }
 
@@ -33,12 +37,12 @@ namespace Vp.RestClient.IntergrationTests
 
         public void UpdateOrder(Order order)
         {
-            throw new System.NotImplementedException();
+            _orderStore[order.Id] = order;
         }
 
-        public void DeleteOrder(Order order)
+        public void DeleteOrder(Guid orderId)
         {
-            throw new System.NotImplementedException();
+            _orderStore.Remove(orderId);
         }
     }
 }
